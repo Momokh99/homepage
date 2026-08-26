@@ -73,6 +73,7 @@ function renderGroups(content, draft, onChange) {
 }
 
 function renderList(content, draft, onChange) {
+  content.innerHTML = ''
   const widgets = draft.widgets || []
   const groups = draft.groups || {}
   const groupNames = Object.keys(groups)
