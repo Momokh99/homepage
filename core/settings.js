@@ -220,9 +220,8 @@ export function mountSettings() {
     saveBtn.addEventListener('click', async () => {
         if (draft) {
             await saveSettings(draft)
-            originalSettings = JSON.parse(JSON.stringify(draft))
         }
-        panel?.classList.remove('open')
+        location.reload()
     })
     footer.append(exportBtn, importBtn, saveBtn)
 
