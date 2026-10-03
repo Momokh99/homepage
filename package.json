@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Customizable new tab page browser extension.",
+  "license": "MIT",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox --mv3",
