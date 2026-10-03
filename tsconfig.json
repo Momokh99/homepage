@@ -15,5 +15,5 @@
     "widgets/**/*",
     "*.ts"
   ],
-  "exclude": [".output", "node_modules", "playground"]
+  "exclude": [".output", "node_modules"]
 }
