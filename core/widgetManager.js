@@ -3,6 +3,18 @@ import { renderSchemaForm } from './schemaForm.js'
 
 let expandedId = null
 
+/**
+ * Merged view of a widget's effective config, so form controls show the
+ * value that will actually be used rather than falling back to the
+ * schema minimum.
+ *
+ * @param {import('./types.js').WidgetDefinition} def
+ * @param {import('./types.js').WidgetInstance} instance
+ */
+function formValues(def, instance) {
+  return { ...(def.defaults || {}), ...(instance.config || {}) }
+}
+
 function renderGroups(content, draft, onChange, onRerender) {
   const groups = draft.groups || {}
   const names = Object.keys(groups)
@@ -70,15 +82,17 @@ function renderGroups(content, draft, onChange, onRerender) {
     const sliders = document.createElement('div')
     sliders.className = 'wm-group-sliders'
 
-    const xSchema = [{ key: 'positionX', label: 'X Position %', type: 'range', min: 0, max: 100, step: 1 }]
+    /** @type {import('./types.js').Field[]} */
+const xSchema = [{ key: 'positionX', label: 'X Position %', type: 'range', min: 0, max: 100, step: 1 }]
     const xForm = renderSchemaForm(xSchema, g, (key, val) => {
       draft.groups[name][key] = val
-      onChange()
+      onChange(undefined, name)
     })
+    /** @type {import('./types.js').Field[]} */
     const ySchema = [{ key: 'positionY', label: 'Y Position %', type: 'range', min: 0, max: 100, step: 1 }]
     const yForm = renderSchemaForm(ySchema, g, (key, val) => {
       draft.groups[name][key] = val
-      onChange()
+      onChange(undefined, name)
     })
     sliders.append(xForm, yForm)
 
@@ -243,9 +257,10 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
   const isOpen = expandedId === instance.instanceId
   formWrap.style.display = isOpen ? 'block' : 'none'
 
-  if (isOpen && def.settingsSchema) {
+  if (isOpen) {
     const isCurrentlyGrouped = !!instance.config?.group
     const groupNames = Object.keys(draft.groups || {})
+    const values = formValues(def, instance)
 
     // Layout section
     const layoutSection = document.createElement('div')
@@ -256,6 +271,7 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
     layoutTitle.textContent = 'Layout'
     layoutSection.append(layoutTitle)
 
+    /** @type {import('./types.js').Field[]} */
     const layoutSchema = []
     if (groupNames.length > 0) {
       layoutSchema.push({ key: 'group', label: 'Group', type: 'select', options: ['(none)', ...groupNames] })
@@ -271,7 +287,7 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
       { key: 'height', label: 'Height px', type: 'range', min: 0, max: 800, step: 10 }
     )
 
-    const layoutForm = renderSchemaForm(layoutSchema, instance.config || {}, (key, val) => {
+    const layoutForm = renderSchemaForm(layoutSchema, values, (key, val) => {
       const inst = draft.widgets.find(w => w.instanceId === instance.instanceId)
       if (inst) {
         inst.config = inst.config || {}
@@ -280,7 +296,7 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
         } else {
           inst.config[key] = val
         }
-        onChange()
+        onChange(inst)
         if (key === 'group') onRerender()
       }
     })
@@ -295,39 +311,42 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
     spacingTitle.textContent = 'Spacing'
     spacingSection.append(spacingTitle)
 
+    /** @type {import('./types.js').Field[]} */
     const spacingSchema = [
       { key: 'margin', label: 'Margin px', type: 'range', min: 0, max: 50, step: 2 }
     ]
-    const spacingForm = renderSchemaForm(spacingSchema, instance.config || {}, (key, val) => {
+    const spacingForm = renderSchemaForm(spacingSchema, values, (key, val) => {
       const inst = draft.widgets.find(w => w.instanceId === instance.instanceId)
       if (inst) {
         inst.config = inst.config || {}
         inst.config[key] = val
-        onChange()
+        onChange(inst)
       }
     })
     spacingSection.append(spacingForm)
 
-    // Widget-specific settings
-    const widgetSection = document.createElement('div')
-    widgetSection.className = 'wm-form-section'
+    if (def.settingsSchema) {
+      const widgetSection = document.createElement('div')
+      widgetSection.className = 'wm-form-section'
 
-    const widgetTitle = document.createElement('div')
-    widgetTitle.className = 'wm-form-section-title'
-    widgetTitle.textContent = def.name
-    widgetSection.append(widgetTitle)
+      const widgetTitle = document.createElement('div')
+      widgetTitle.className = 'wm-form-section-title'
+      widgetTitle.textContent = def.name
+      widgetSection.append(widgetTitle)
 
-    const widgetForm = renderSchemaForm(def.settingsSchema, instance.config || {}, (key, val) => {
-      const inst = draft.widgets.find(w => w.instanceId === instance.instanceId)
-      if (inst) {
-        inst.config = inst.config || {}
-        inst.config[key] = val
-        onChange()
-      }
-    })
-    widgetSection.append(widgetForm)
+      const widgetForm = renderSchemaForm(def.settingsSchema, values, (key, val) => {
+        const inst = draft.widgets.find(w => w.instanceId === instance.instanceId)
+        if (inst) {
+          inst.config = inst.config || {}
+          inst.config[key] = val
+          onChange(inst)
+        }
+      })
+      widgetSection.append(widgetForm)
+      formWrap.append(widgetSection)
+    }
 
-    formWrap.append(layoutSection, spacingSection, widgetSection)
+    formWrap.append(layoutSection, spacingSection)
   }
 
   header.addEventListener('click', () => {

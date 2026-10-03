@@ -1,8 +1,14 @@
+/**
+ * @param {import('./types.js').Field[] | undefined} schema
+ * @param {Record<string, any>} values
+ * @param {(key: string, value: any) => void} onChange
+ * @returns {HTMLDivElement}
+ */
 export function renderSchemaForm(schema, values, onChange) {
   const form = document.createElement('div')
   form.className = 'schema-form'
 
-  for (const field of schema) {
+  for (const field of schema || []) {
     const row = document.createElement('div')
     row.className = 'schema-row'
 
@@ -21,6 +27,12 @@ export function renderSchemaForm(schema, values, onChange) {
   return form
 }
 
+/**
+ * @param {import('./types.js').Field} field
+ * @param {any} value
+ * @param {(value: any) => void} onChange
+ * @returns {HTMLElement}
+ */
 function createControl(field, value, onChange) {
   switch (field.type) {
     case 'text': {
@@ -33,10 +45,10 @@ function createControl(field, value, onChange) {
     case 'number': {
       const input = document.createElement('input')
       input.type = 'number'
-      input.value = value ?? field.min ?? 0
-      if (field.min != null) input.min = field.min
-      if (field.max != null) input.max = field.max
-      if (field.step != null) input.step = field.step
+      input.value = String(value ?? field.min ?? 0)
+      if (field.min != null) input.min = String(field.min)
+      if (field.max != null) input.max = String(field.max)
+      if (field.step != null) input.step = String(field.step)
       input.addEventListener('input', () => onChange(Number(input.value)))
       return input
     }
@@ -45,10 +57,10 @@ function createControl(field, value, onChange) {
       wrap.className = 'schema-range'
       const input = document.createElement('input')
       input.type = 'range'
-      input.value = value ?? field.min ?? 0
-      input.min = field.min
-      input.max = field.max
-      input.step = field.step ?? 1
+      input.value = String(value ?? field.min ?? 0)
+      input.min = String(field.min ?? 0)
+      input.max = String(field.max ?? 100)
+      input.step = String(field.step ?? 1)
       const val = document.createElement('span')
       val.textContent = input.value
       input.addEventListener('input', () => {

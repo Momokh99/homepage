@@ -1,0 +1,16 @@
+{
+  "name": "homepage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Customizable new tab page browser extension.",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "npm run check && node build.js",
+    "watch": "tsc --noEmit --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.4",
+    "typescript": "^7.0.2"
+  }
+}

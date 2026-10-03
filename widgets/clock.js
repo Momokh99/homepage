@@ -1,10 +1,11 @@
+/** @type {import('../core/types.js').WidgetDefinition} */
 export const clockWidget = {
   id: 'clock',
   name: 'Clock',
   defaults: {
     format: '24h',
     fontSize: 48,
-    color: 'black'
+    color: 'hsl(0 0% 85%)'
   },
   settingsSchema: [
     { key: 'format',   label: 'Format',   type: 'select', options: ['12h', '24h'] },

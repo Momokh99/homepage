@@ -1,12 +1,17 @@
 import { loadSettings, saveSettings } from './storage.js'
 import { applyBackground } from './theme.js'
+import { applyGroupLayout, relayoutWidget } from './layout.js'
 import { renderSchemaForm } from './schemaForm.js'
 import { mountWidgetManager } from './widgetManager.js'
 import { saveImageBlob, loadImageBlob } from './imageStore.js'
 
+/** @type {HTMLElement | null} */
 let panel = null
+/** @type {HTMLElement | null} */
 let content = null
+/** @type {import('./types.js').Settings | null} */
 let draft = null
+/** @type {import('./types.js').Settings | null} */
 let originalSettings = null
 
 function renderAppearance() {
@@ -29,8 +34,9 @@ function renderAppearance() {
         typeSelect.append(option)
     }
     typeSelect.addEventListener('change', () => {
+        const next = typeSelect.value === 'image' ? 'image' : 'color'
         draft.background = draft.background || {}
-        draft.background.type = typeSelect.value
+        draft.background.type = next
         renderAppearance()
     })
     typeRow.append(typeLabel, typeSelect)
@@ -38,6 +44,7 @@ function renderAppearance() {
 
     // Color picker (only when type=color)
     if ((bg.type || 'color') === 'color') {
+        /** @type {import('./types.js').Field[]} */
         const colorSchema = [
             { key: 'value', label: 'Color', type: 'color' }
         ]
@@ -91,6 +98,7 @@ function renderAppearance() {
     }
 
     // Blur and Dim sliders
+    /** @type {import('./types.js').Field[]} */
     const slidersSchema = [
         { key: 'blur', label: 'Blur', type: 'range', min: 0, max: 20, step: 1 },
         { key: 'dim', label: 'Dim', type: 'range', min: 0, max: 80, step: 5 }
@@ -103,12 +111,47 @@ function renderAppearance() {
     content.append(slidersForm)
 }
 
+/**
+ * Applies a draft layout change to the live page without persisting.
+ *
+ * @param {import('./types.js').WidgetInstance} [instance]
+ * @param {string} [groupName]
+ */
+function previewDraft(instance, groupName) {
+    if (groupName != null) {
+        const gc = /** @type {HTMLElement | null} */ (
+            document.querySelector('.widget-group[data-group="' + CSS.escape(groupName) + '"]')
+        )
+        if (gc) applyGroupLayout(gc, draft?.groups?.[groupName])
+        return
+    }
+    if (!instance) return
+    const box = /** @type {HTMLElement | null} */ (
+        document.querySelector('.widget[data-instance-id="' + CSS.escape(instance.instanceId) + '"]')
+    )
+    if (box) relayoutWidget(box, instance.config)
+}
+
+function revertDraft() {
+    if (!originalSettings) return
+    applyBackground(originalSettings.background)
+    for (const [name, g] of Object.entries(originalSettings.groups || {})) {
+        const gc = /** @type {HTMLElement | null} */ (
+            document.querySelector('.widget-group[data-group="' + CSS.escape(name) + '"]')
+        )
+        if (gc) applyGroupLayout(gc, g)
+    }
+    const instances = originalSettings.widgets || []
+    for (const el of document.querySelectorAll('.widget[data-instance-id]')) {
+        const box = /** @type {HTMLElement} */ (el)
+        const inst = instances.find(w => w.instanceId === box.dataset.instanceId)
+        if (inst) relayoutWidget(box, inst.config)
+    }
+}
+
 function renderWidgets() {
     content.innerHTML = ''
-    mountWidgetManager(content, draft, () => {
-        // onChange callback — draft already mutated by widgetManager
-        // no save yet, just a placeholder for future hooks
-    })
+    mountWidgetManager(content, draft, previewDraft)
 }
 
 const tabRenderers = {
@@ -155,10 +198,7 @@ export function openPanel() {
 }
 
 export function closePanel() {
-    // Revert: restore original settings and re-apply
-    if (originalSettings) {
-        applyBackground(originalSettings.background)
-    }
+    revertDraft()
     draft = null
     panel?.classList.remove('open')
 }

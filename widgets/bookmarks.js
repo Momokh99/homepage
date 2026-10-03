@@ -1,3 +1,4 @@
+/** @type {import('../core/types.js').WidgetDefinition} */
 export const bookmarksWidget = {
   id: 'bookmarks',
   name: 'Bookmarks',
