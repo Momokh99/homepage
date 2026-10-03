@@ -1,11 +1,10 @@
-import { loadSettings, saveSettings } from './core/storage.js'
-import { getWidget } from './core/registry.js'
-import { applyBackground } from './core/theme.js'
-import { applyGroupLayout, applyWidgetLayout } from './core/layout.js'
-import { mountSettings, openPanelWithDraft as openPanel } from './core/settings.js'
-import { api } from './core/api.js'
+import { loadSettings, saveSettings } from '~~/core/storage.js'
+import { getWidget } from '~~/core/registry.js'
+import { applyBackground } from '~~/core/theme.js'
+import { applyGroupLayout, applyWidgetLayout } from '~~/core/layout.js'
+import { mountSettings, openPanelWithDraft as openPanel } from '~~/core/settings.js'
 
-/** @param {import('./core/types.js').Settings} settings */
+/** @param {import('~~/core/types.js').Settings} settings */
 function seedSettings(settings) {
   settings.background ??= { type: 'color', value: 'hsl(220 15% 15%)' }
   settings.widgets ??= [
@@ -42,9 +41,9 @@ function seedSettings(settings) {
     groupContainers[name] = gc
   }
 
-  /** @type {import('./core/types.js').WidgetInstance[]} */
+  /** @type {import('~~/core/types.js').WidgetInstance[]} */
   const ungrouped = []
-  /** @type {import('./core/types.js').WidgetInstance[]} */
+  /** @type {import('~~/core/types.js').WidgetInstance[]} */
   const grouped = []
   for (const instance of settings.widgets || []) {
     const wg = instance.config?.group
@@ -57,7 +56,7 @@ function seedSettings(settings) {
 
   /**
    * @param {HTMLElement} parent
-   * @param {import('./core/types.js').WidgetInstance} instance
+   * @param {import('~~/core/types.js').WidgetInstance} instance
    * @param {number} index
    * @param {number} total
    * @param {string} [extraClass]
@@ -92,7 +91,7 @@ function seedSettings(settings) {
     openPanel()
   }
 
-  api.runtime.onMessage.addListener((msg) => {
+  browser.runtime.onMessage.addListener((msg) => {
     if (msg && msg.action === 'openSettings') openPanel()
   })
 })()
