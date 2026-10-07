@@ -39,11 +39,19 @@ body::after {
     position: absolute;
     padding: 12px;
     text-align: center;
+    left: var(--widget-x, auto);
+    top: var(--widget-y, auto);
+    translate: -50% -50%;
+    width: var(--widget-width, auto);
+    height: var(--widget-height, auto);
+    margin: var(--widget-margin, 0);
 }
 
 .widget-group {
     position: absolute;
-    transform: translate(-50%, -50%);
+    left: var(--widget-x, 50%);
+    top: var(--widget-y, 50%);
+    translate: -50% -50%;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -51,6 +59,9 @@ body::after {
 }
 .widget-grouped {
     position: relative;
+    left: auto;
+    top: auto;
+    translate: none;
 }
 
 .search-input {
@@ -525,19 +536,34 @@ body::after {
   padding: 14px 10px;
   border-radius: 12px;
   background: hsl(0 0% 100% / 5%);
+  border: 1px solid transparent;
   text-decoration: none;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
   min-width: 72px;
 }
 .bookmark-tile:hover {
   background: hsl(0 0% 100% / 12%);
+  border-color: hsl(0 0% 100% / 12%);
+  transform: translateY(-2px);
 }
 .bookmark-tile img {
   width: 32px;
   height: 32px;
   border-radius: 4px;
 }
-.bookmark-tile span {
+.bookmark-letter {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: hsl(0 0% 100% / 10%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: hsl(0 0% 80%);
+}
+.bookmark-tile .bookmark-name {
   font-size: 12px;
   color: hsl(0 0% 75%);
   max-width: 80px;
@@ -607,4 +633,155 @@ body::after {
 .schema-list-add:hover {
   color: hsl(0 0% 90%);
   border-color: hsl(0 0% 50%);
+}
+
+.setup-overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(0 0% 0% / 60%);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setup-modal {
+  background: hsl(220 15% 12%);
+  border: 1px solid hsl(0 0% 25%);
+  border-radius: 16px;
+  padding: 24px;
+  width: min(480px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: hsl(0 0% 85%);
+}
+
+.setup-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.setup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.setup-body p {
+  margin: 0;
+  color: hsl(0 0% 70%);
+}
+
+.setup-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.setup-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(0 0% 30%);
+}
+
+.setup-dot.active {
+  background: hsl(0 0% 85%);
+}
+
+.setup-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.setup-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid hsl(0 0% 30%);
+  background: transparent;
+  color: hsl(0 0% 80%);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.setup-btn:hover {
+  border-color: hsl(0 0% 50%);
+}
+
+.setup-btn-primary {
+  background: hsl(0 0% 90%);
+  color: hsl(220 15% 12%);
+  border: none;
+  font-weight: 600;
+}
+
+.setup-btn-primary:hover {
+  background: hsl(0 0% 100%);
+}
+
+.setup-btn-ghost {
+  border: none;
+  color: hsl(0 0% 55%);
+  margin-right: auto;
+}
+
+.setup-engines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.setup-engine-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: hsl(0 0% 100% / 4%);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.setup-engine-row:hover {
+  background: hsl(0 0% 100% / 8%);
+}
+
+.setup-engine-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: hsl(0 0% 60%);
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body[data-bg-anim="gradient"]::before {
+  background-size: 300% 300%;
+  animation: bgGradient 24s ease infinite;
+}
+
+@keyframes bgGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+body[data-bg-anim="shooting"]::before {
+  animation: bgZoom 50s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes bgZoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
 }

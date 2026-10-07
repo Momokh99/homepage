@@ -1,3 +1,6 @@
+/** @type {WeakMap<HTMLElement, ReturnType<typeof setInterval>>} */
+const timers = new WeakMap()
+
 /** @type {import('../core/types.js').WidgetDefinition} */
 export const clockWidget = {
   id: 'clock',
@@ -24,6 +27,8 @@ export const clockWidget = {
       })
     }
     update()
-    setInterval(update, 1000)
+    const prev = timers.get(box)
+    if (prev != null) clearInterval(prev)
+    timers.set(box, setInterval(update, 1000))
   }
 }

@@ -28,21 +28,34 @@ function percent(value, fallback) {
  */
 export function applyWidgetLayout(box, config, index = 0, total = 1) {
   const cfg = config || {}
+  const inGroup = box.classList.contains('widget-grouped') || !!box.closest('.widget-group')
 
-  const x = percent(cfg.positionX, 50)
-  const y = percent(cfg.positionY, (100 / (total + 1)) * (index + 1))
+  // Geometry is expressed as CSS custom properties; style.css owns the
+  // position/transform/sizing rules.
+  box.style.left = ''
+  box.style.top = ''
+  box.style.transform = ''
 
-  box.style.left = x + '%'
-  box.style.top = y + '%'
-  box.style.transform = 'translate(-50%, -50%)'
+  if (inGroup) {
+    box.style.removeProperty('--widget-x')
+    box.style.removeProperty('--widget-y')
+  } else {
+    const x = percent(cfg.positionX, 50)
+    const y = percent(cfg.positionY, (100 / (total + 1)) * (index + 1))
+    box.style.setProperty('--widget-x', x + '%')
+    box.style.setProperty('--widget-y', y + '%')
+  }
 
   const width = cfg.width != null ? num(cfg.width, 0) : null
-  if (width != null) box.style.width = width + 'px'
+  if (width != null && width > 0) box.style.setProperty('--widget-width', width + 'px')
+  else box.style.removeProperty('--widget-width')
 
   const height = cfg.height != null ? num(cfg.height, 0) : 0
-  if (height > 0) box.style.height = height + 'px'
+  if (height > 0) box.style.setProperty('--widget-height', height + 'px')
+  else box.style.removeProperty('--widget-height')
 
-  if (cfg.margin != null) box.style.margin = num(cfg.margin, 0) + 'px'
+  if (cfg.margin != null) box.style.setProperty('--widget-margin', num(cfg.margin, 0) + 'px')
+  else box.style.removeProperty('--widget-margin')
 
   box.dataset.layoutIndex = String(index)
   box.dataset.layoutTotal = String(total)
@@ -54,9 +67,11 @@ export function applyWidgetLayout(box, config, index = 0, total = 1) {
  */
 export function applyGroupLayout(box, config) {
   const cfg = config || {}
-  box.style.left = percent(cfg.positionX, 50) + '%'
-  box.style.top = percent(cfg.positionY, 50) + '%'
-  box.style.transform = 'translate(-50%, -50%)'
+  box.style.left = ''
+  box.style.top = ''
+  box.style.transform = ''
+  box.style.setProperty('--widget-x', percent(cfg.positionX, 50) + '%')
+  box.style.setProperty('--widget-y', percent(cfg.positionY, 50) + '%')
 }
 
 /**

@@ -12,7 +12,9 @@ export const searchWidget = {
       { name: 'Claude',     url: 'https://claude.ai/new?q=%s',            enabled: true },
       { name: 'Perplexity', url: 'https://www.perplexity.ai/search?q=%s', enabled: true },
       { name: 'Copilot',    url: 'https://copilot.microsoft.com/?q=%s',   enabled: true },
-      { name: 'Gemini',     url: 'https://gemini.google.com/app',         enabled: false }
+      { name: 'Gemini',     url: 'https://gemini.google.com/app?q=%s',    enabled: false },
+      { name: 'YouTube',    url: 'https://www.youtube.com/results?search_query=%s', enabled: true },
+      { name: 'GitHub',    url: 'https://github.com/search?q=%s',    enabled: true }
     ]
   },
   settingsSchema: [
@@ -63,6 +65,7 @@ export const searchWidget = {
         const url = dest.url.includes('%s')
           ? dest.url.replace('%s', encodeURIComponent(query))
           : dest.url + encodeURIComponent(query)
+        input.value = ''
         if (conf.newTab) window.open(url, '_blank', 'noopener,noreferrer')
         else window.location.href = url
       }

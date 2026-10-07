@@ -3,6 +3,8 @@ import { getWidget } from '~~/core/registry.js'
 import { applyBackground } from '~~/core/theme.js'
 import { applyGroupLayout, applyWidgetLayout } from '~~/core/layout.js'
 import { mountSettings, openPanelWithDraft as openPanel } from '~~/core/settings.js'
+import { mountSetupWizard } from '~~/core/setupWizard.js'
+import { applyWidgetCSS } from '~~/core/customCSS.js'
 
 /** @param {import('~~/core/types.js').Settings} settings */
 function seedSettings(settings) {
@@ -18,8 +20,9 @@ function seedSettings(settings) {
 
 ;(async () => {
   const settings = await loadSettings()
+  const isFirstRun = !settings.initialized
 
-  if (!settings.initialized) {
+  if (isFirstRun) {
     seedSettings(settings)
     await saveSettings(settings)
   }
@@ -72,6 +75,7 @@ function seedSettings(settings) {
     applyWidgetLayout(box, instance.config, index, total)
     parent.append(box)
     widget.render(box, instance.config)
+    applyWidgetCSS(instance.instanceId, instance.config?.customCSS)
     return box
   }
 
@@ -84,6 +88,10 @@ function seedSettings(settings) {
   }
 
   mountSettings()
+
+  if (isFirstRun && !settings.setupComplete) {
+    mountSetupWizard(settings)
+  }
 
   const params = new URLSearchParams(location.search)
   if (params.get('settings') === 'open') {

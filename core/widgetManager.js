@@ -1,5 +1,6 @@
 import { getWidget, registry } from './registry.js'
 import { renderSchemaForm } from './schemaForm.js'
+import { currentCSSForWidget } from './customCSS.js'
 
 let expandedId = null
 
@@ -296,7 +297,7 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
         } else {
           inst.config[key] = val
         }
-        onChange(inst)
+        onChange(inst, key)
         if (key === 'group') onRerender()
       }
     })
@@ -320,7 +321,7 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
       if (inst) {
         inst.config = inst.config || {}
         inst.config[key] = val
-        onChange(inst)
+        onChange(inst, key)
       }
     })
     spacingSection.append(spacingForm)
@@ -339,10 +340,28 @@ function createWidgetRow(instance, draft, onChange, onRerender, isGrouped) {
         if (inst) {
           inst.config = inst.config || {}
           inst.config[key] = val
-          onChange(inst)
+          onChange(inst, key)
         }
       })
       widgetSection.append(widgetForm)
+
+      const box = /** @type {HTMLElement | null} */ (
+        document.querySelector('.widget[data-instance-id="' + CSS.escape(instance.instanceId) + '"]')
+      )
+      const cssValues = { ...values, customCSS: instance.config?.customCSS ?? currentCSSForWidget(box) }
+      /** @type {import('./types.js').Field[]} */
+      const cssSchema = [
+        { key: 'customCSS', label: 'Custom CSS', type: 'textarea', rows: 8, placeholder: '.bookmark-tile { background: ... }' }
+      ]
+      const cssForm = renderSchemaForm(cssSchema, cssValues, (key, val) => {
+        const inst = draft.widgets.find(w => w.instanceId === instance.instanceId)
+        if (inst) {
+          inst.config = inst.config || {}
+          inst.config[key] = val
+          onChange(inst, key)
+        }
+      })
+      widgetSection.append(cssForm)
       formWrap.append(widgetSection)
     }
 

@@ -28,6 +28,30 @@ export function renderSchemaForm(schema, values, onChange) {
 }
 
 /**
+ * Normalizes any CSS color (hsl(), rgb(), named, …) to #rrggbb so it can
+ * be displayed in <input type="color">.
+ *
+ * @param {unknown} value
+ * @param {string} [fallback]
+ * @returns {string}
+ */
+function toHexColor(value, fallback = '#ffffff') {
+  if (typeof value !== 'string' || !value) return fallback
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) return value
+  const ctx = document.createElement('canvas').getContext('2d')
+  if (!ctx) return fallback
+  ctx.fillStyle = '#000000'
+  ctx.fillStyle = value
+  const normalized = ctx.fillStyle
+  if (/^#[0-9a-fA-F]{6}$/.test(normalized)) return normalized
+  const m = normalized.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/)
+  if (m) {
+    return '#' + [m[1], m[2], m[3]].map(n => (+n).toString(16).padStart(2, '0')).join('')
+  }
+  return fallback
+}
+
+/**
  * @param {import('./types.js').Field} field
  * @param {any} value
  * @param {(value: any) => void} onChange
@@ -39,6 +63,7 @@ function createControl(field, value, onChange) {
       const input = document.createElement('input')
       input.type = 'text'
       input.value = value ?? ''
+      input.placeholder = field.label
       input.addEventListener('input', () => onChange(input.value))
       return input
     }
@@ -49,7 +74,10 @@ function createControl(field, value, onChange) {
       if (field.min != null) input.min = String(field.min)
       if (field.max != null) input.max = String(field.max)
       if (field.step != null) input.step = String(field.step)
-      input.addEventListener('input', () => onChange(Number(input.value)))
+      input.addEventListener('input', () => {
+        const n = input.valueAsNumber
+        if (Number.isFinite(n)) onChange(n)
+      })
       return input
     }
     case 'range': {
@@ -92,7 +120,7 @@ function createControl(field, value, onChange) {
     case 'color': {
       const input = document.createElement('input')
       input.type = 'color'
-      input.value = value ?? '#ffffff'
+      input.value = toHexColor(value)
       input.addEventListener('input', () => onChange(input.value))
       return input
     }
@@ -119,6 +147,9 @@ function createControl(field, value, onChange) {
             })
             const fieldWrap = document.createElement('div')
             fieldWrap.className = 'schema-list-field'
+            if (subControl instanceof HTMLInputElement && subControl.type !== 'checkbox' && subControl.type !== 'range' && subControl.type !== 'color') {
+              subControl.placeholder = sub.label
+            }
             fieldWrap.append(lbl, subControl)
             fields.append(fieldWrap)
           }
@@ -145,6 +176,15 @@ function createControl(field, value, onChange) {
       }
       renderItems()
       return container
+    }
+    case 'textarea': {
+      const input = document.createElement('textarea')
+      input.value = value ?? ''
+      input.rows = field.rows ?? 6
+      input.spellcheck = false
+      if (field.placeholder) input.placeholder = field.placeholder
+      input.addEventListener('input', () => onChange(input.value))
+      return input
     }
     default:
       return document.createElement('span')

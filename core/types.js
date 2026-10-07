@@ -10,6 +10,7 @@
  * @property {string} [value]
  * @property {number} [blur]
  * @property {number} [dim]
+ * @property {'none'|'gradient'|'stars'|'waves'|'shooting'} [animation]
  */
 
 /**
@@ -28,6 +29,7 @@
 /**
  * @typedef {Object} Settings
  * @property {boolean} [initialized]
+ * @property {boolean} [setupComplete]
  * @property {BackgroundConfig} [background]
  * @property {WidgetInstance[]} [widgets]
  * @property {Record<string, GroupConfig>} [groups]
@@ -45,14 +47,15 @@
 /** @typedef {FieldBase & {type:'select', options:string[]}} SelectField */
 /** @typedef {FieldBase & {type:'toggle'}} ToggleField */
 /** @typedef {FieldBase & {type:'color'}} ColorField */
-/** @typedef {FieldBase & {type:'list', itemSchema:Field[]}} ListField */
+/** @typedef {FieldBase & {type:'list', itemSchema:Field[], itemDefaults?:Record<string, any>}} ListField */
+/** @typedef {FieldBase & {type:'textarea', rows?:number, placeholder?:string}} TextareaField */
 
 /**
  * A single settings control description. Discriminated on `type` so that a
  * typo in a widget's `settingsSchema` is a type error rather than a control
  * that silently renders as nothing.
  *
- * @typedef {TextField|NumberField|RangeField|SelectField|ToggleField|ColorField|ListField} Field
+ * @typedef {TextField|NumberField|RangeField|SelectField|ToggleField|ColorField|ListField|TextareaField} Field
  */
 
 /**

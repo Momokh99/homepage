@@ -1,6 +1,8 @@
 import { loadSettings, saveSettings } from './storage.js'
 import { applyBackground } from './theme.js'
 import { applyGroupLayout, relayoutWidget } from './layout.js'
+import { getWidget } from './registry.js'
+import { applyWidgetCSS } from './customCSS.js'
 import { renderSchemaForm } from './schemaForm.js'
 import { mountWidgetManager } from './widgetManager.js'
 import { saveImageBlob, loadImageBlob } from './imageStore.js'
@@ -41,6 +43,38 @@ function renderAppearance() {
     })
     typeRow.append(typeLabel, typeSelect)
     content.append(typeRow)
+
+    // Background animation selector
+    const animRow = document.createElement('div')
+    animRow.className = 'appearance-bg-type'
+    const animLabel = document.createElement('span')
+    animLabel.className = 'schema-label'
+    animLabel.textContent = 'Animation'
+    const animSelect = document.createElement('select')
+    /** @type {{label: string, options: string[]}[]} */
+    const animGroups = [
+        { label: 'Light', options: ['none', 'gradient', 'stars'] },
+        { label: 'Heavy', options: ['waves', 'shooting'] }
+    ]
+    for (const g of animGroups) {
+        const groupEl = document.createElement('optgroup')
+        groupEl.label = g.label
+        for (const opt of g.options) {
+            const option = document.createElement('option')
+            option.value = opt
+            option.textContent = opt.charAt(0).toUpperCase() + opt.slice(1)
+            if (opt === (bg.animation || 'none')) option.selected = true
+            groupEl.append(option)
+        }
+        animSelect.append(groupEl)
+    }
+    animSelect.addEventListener('change', () => {
+        draft.background = draft.background || {}
+        draft.background.animation = /** @type {any} */ (animSelect.value)
+        applyBackground(draft.background)
+    })
+    animRow.append(animLabel, animSelect)
+    content.append(animRow)
 
     // Color picker (only when type=color)
     if ((bg.type || 'color') === 'color') {
@@ -111,13 +145,17 @@ function renderAppearance() {
     content.append(slidersForm)
 }
 
+/** @type {Set<string>} */
+const LAYOUT_KEYS = new Set(['group', 'positionX', 'positionY', 'width', 'height', 'margin'])
+
 /**
  * Applies a draft layout change to the live page without persisting.
  *
  * @param {import('./types.js').WidgetInstance} [instance]
  * @param {string} [groupName]
+ * @param {string} [changedKey]
  */
-function previewDraft(instance, groupName) {
+function previewDraft(instance, groupName, changedKey) {
     if (groupName != null) {
         const gc = /** @type {HTMLElement | null} */ (
             document.querySelector('.widget-group[data-group="' + CSS.escape(groupName) + '"]')
@@ -129,7 +167,33 @@ function previewDraft(instance, groupName) {
     const box = /** @type {HTMLElement | null} */ (
         document.querySelector('.widget[data-instance-id="' + CSS.escape(instance.instanceId) + '"]')
     )
-    if (box) relayoutWidget(box, instance.config)
+    if (!box) return
+    if (changedKey === 'customCSS') {
+        applyWidgetCSS(instance.instanceId, instance.config?.customCSS)
+        return
+    }
+    if (changedKey === 'group') {
+        const g = instance.config?.group
+        const gc = g
+            ? /** @type {HTMLElement | null} */ (document.querySelector('.widget-group[data-group="' + CSS.escape(g) + '"]'))
+            : null
+        const parent = gc || document.getElementById('widgets')
+        if (parent) {
+            parent.append(box)
+            box.classList.toggle('widget-grouped', !!gc)
+        }
+        relayoutWidget(box, instance.config)
+        return
+    }
+    if (changedKey == null || LAYOUT_KEYS.has(changedKey)) {
+        relayoutWidget(box, instance.config)
+        return
+    }
+    const def = getWidget(instance.type)
+    if (!def) return
+    box.replaceChildren()
+    def.render(box, instance.config)
+    relayoutWidget(box, instance.config)
 }
 
 function revertDraft() {
@@ -145,7 +209,14 @@ function revertDraft() {
     for (const el of document.querySelectorAll('.widget[data-instance-id]')) {
         const box = /** @type {HTMLElement} */ (el)
         const inst = instances.find(w => w.instanceId === box.dataset.instanceId)
-        if (inst) relayoutWidget(box, inst.config)
+        if (!inst) continue
+        const def = getWidget(inst.type)
+        if (def) {
+            box.replaceChildren()
+            def.render(box, inst.config)
+        }
+        applyWidgetCSS(inst.instanceId, inst.config?.customCSS)
+        relayoutWidget(box, inst.config)
     }
 }
 
