@@ -67,7 +67,9 @@ transfer between them. Use **Export / Import** in settings to move them.
 | `npm run dev:firefox` | Firefox with hot module replacement |
 | `npm run build` | Typecheck, then build both targets |
 | `npm run check` | Typecheck only (`tsc --noEmit`) |
-| `npm run zip:firefox` | Build an AMO submission zip |
+| `npm run zip` | Zip both targets for distribution |
+| `npm run zip:chrome` | Zip the Chrome build |
+| `npm run zip:firefox` | Zip the Firefox build |
 
 WXT generates the manifest from `wxt.config.ts`. **Firefox requires `--mv3`** —
 WXT targets MV2 for Firefox by default, so the Firefox flags in `package.json`
@@ -141,11 +143,20 @@ the manual test checklist.
 
 ## Publishing
 
-- **Firefox** — `npm run zip:firefox`, then upload to AMO. New extensions
-  require a `data_collection_permissions` declaration, which the build warns
-  about.
-- **Chrome** — `npm run build`, then upload `.output/chrome-mv3` as an unpacked
-  extension.
+Run `npm run zip` to produce distribution archives for both targets. Each zip is
+written to `.output/` as `homepage-<version>-<browser>.zip`.
+
+- **Chrome** — `npm run zip:chrome`, then upload
+  `.output/homepage-1.0.0-chrome.zip` to the [Chrome Web Store][cws]. It expects a
+  zip, not an unpacked directory.
+- **Firefox** — `npm run zip:firefox`, then upload
+  `.output/homepage-1.0.0-firefox.zip` to AMO. New extensions require a
+  `data_collection_permissions` declaration, which the build warns about.
+
+[cws]: https://chrome.google.com/webstore/devconsole
+
+The zip scripts rebuild the extension, so `npm run build` does not need to run
+first. Neither script typechecks — run `npm run check` before packaging.
 
 ## License
 
