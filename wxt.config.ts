@@ -2,8 +2,8 @@ import { defineConfig } from 'wxt'
 
 export default defineConfig({
   manifest: ({ browser }) => ({
-    name: 'My Custom Home Screen',
-    description: 'Customizes the default new tab page.',
+    name: 'Homepage',
+    description: 'A customizable new tab page built from widgets.',
     action: { default_title: 'Customize homepage' },
     permissions: ['storage', 'tabs'],
     icons: {
