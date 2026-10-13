@@ -12,7 +12,7 @@ export const searchWidget = {
       { name: 'Claude',     url: 'https://claude.ai/new?q=%s',            enabled: true },
       { name: 'Perplexity', url: 'https://www.perplexity.ai/search?q=%s', enabled: true },
       { name: 'Copilot',    url: 'https://copilot.microsoft.com/?q=%s',   enabled: false },
-      { name: 'Gemini',     url: 'https://gemini.google.com/app?q=%s',    enabled: false },
+      
       { name: 'YouTube',    url: 'https://www.youtube.com/results?search_query=%s', enabled: true },
       { name: 'GitHub',    url: 'https://github.com/search?q=%s',    enabled: false }
     ]
