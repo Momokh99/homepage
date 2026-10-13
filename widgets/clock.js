@@ -6,7 +6,7 @@ export const clockWidget = {
   id: 'clock',
   name: 'Clock',
   defaults: {
-    format: '24h',
+    format: '12h',
     fontSize: 48,
     color: 'hsl(0 0% 85%)'
   },
