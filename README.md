@@ -4,15 +4,31 @@ A customizable new tab page browser extension. Replaces the browser's new tab
 with a configurable surface of widgets, written in plain ES modules with no UI
 framework.
 
+Built with [WXT](https://wxt.dev) and distributed as MV3 for both Chrome and
+Firefox. Around 48 kB built, no runtime dependencies.
+
 ## Features
 
 - **Three widgets** — multi-engine search, clock, bookmarks
 - **Widget management** — add, remove, and group widgets; position each with
   X/Y percentage sliders
-- **Appearance** — solid colour or uploaded image background, with blur and dim
+- **Per-widget styling** — size, margin, and custom CSS per widget
+- **Appearance** — solid colour or uploaded image background, with blur, dim,
+  and animated backgrounds (stars, waves, shooting stars)
+- **Setup wizard** — first-run walkthrough for background, bookmarks, and engines
 - **Live preview** — every settings change previews on the page and reverts on cancel
 - **Import / export** — settings as JSON
 - **Firefox and Chrome** — single build system, both targets
+
+## Quick start
+
+```bash
+npm install
+npm run build
+```
+
+Then load the unpacked build — see [Install](#install) below. For development
+with hot module replacement, use `npm run dev`.
 
 ## Install
 
@@ -29,6 +45,19 @@ framework.
 3. **Load Temporary Add-on** → select `.output/firefox-mv3/manifest.json`
 
 Note the version suffix on the output directories (`chrome-mv3`, not `chrome`).
+
+## Browser support
+
+| Browser | Version | Manifest |
+| --- | --- | --- |
+| Chrome / Edge | 109+ (MV3) | `.output/chrome-mv3` |
+| Firefox | 109+ | `.output/firefox-mv3` |
+
+Requires a browser with MV3 support. Permissions requested are `storage` and
+`tabs` — the latter only for the toolbar action that focuses or opens a tab.
+
+Chrome and Firefox keep **separate** extension storage, so settings do not
+transfer between them. Use **Export / Import** in settings to move them.
 
 ## Development
 
@@ -60,7 +89,9 @@ public/icons/          extension icons
 
 ## Adding a widget
 
-Widgets are plain objects. No framework, no registration step:
+See [CONTRIBUTING.md](CONTRIBUTING.md#adding-a-widget) for the full guide.
+The short version — widgets are plain objects, no framework, no registration
+step beyond `core/registry.js`:
 
 ```js
 export const notesWidget = {
@@ -77,8 +108,8 @@ export const notesWidget = {
 }
 ```
 
-`settingsSchema` drives the settings UI automatically — a `text`, `number`,
-`range`, `select`, `toggle`, `color`, or `list` field. Register it in
+`settingsSchema` drives the settings UI automatically — a `text`, `textarea`,
+`number`, `range`, `select`, `toggle`, `color`, or `list` field. Register it in
 `core/registry.js`.
 
 ## Testing
@@ -103,8 +134,10 @@ steps above, then work through the checklist.
 | 12 | Export and Import round-trip | Reloads with imported settings |
 | 13 | Firefox: toolbar action works | Runs via `background.scripts` |
 
-Chrome and Firefox keep **separate** extension storage, so settings do not
-transfer between them.
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, widget conventions, and
+the manual test checklist.
 
 ## Publishing
 
